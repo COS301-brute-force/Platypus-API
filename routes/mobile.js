@@ -31,7 +31,7 @@ router.post('/getAllSessionData', mobile.getAllSessionData);
 
 router.post('/leaveSession', mobile.leaveSession);
 
-router.post('/isDorment'), mobile.isDorment);
+//router.post('/isDorment', mobile.isDorment);
 
 /**
  * Define route for the getItems function.

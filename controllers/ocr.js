@@ -1,5 +1,5 @@
 /**
- * @file This file implements the defined routes for use by the OCR componant
+ * @file This file implements the defined routes for use by the OCR component
  */
 var config      = require('config');
 var debug       = require('debug')('platypus-api:controllers:ocr');
@@ -52,13 +52,12 @@ module.exports.detect = function(target_path, bill) {
       }
       debug("Body: ");
       debug(body);
-      // if(body.type == 'success') {
-      //   response.data.attributes.items = body.attributes.data;
-      // }
-      // else{
+      if(body.type == 'success') {
+         response.data.attributes.items = body.attributes.data;
+      }
+      else{
         response.data.attributes.items = its;
-      //}
-
+      }
       debug('Sending response (status: 200)');
       resolve(response);
     });

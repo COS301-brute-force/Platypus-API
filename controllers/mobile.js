@@ -1,6 +1,6 @@
 /**
  * @file This file implements the defined routes for use by the mobile
- * componant. As well as helper functions for these routes.
+ * component. As well as helper functions for these routes.
  */
 var debug = require('debug')('platypus-api:controllers:mobile');
 var fs = require('fs');
@@ -109,10 +109,9 @@ module.exports.sendImage = function (req, res, next) {
 
 debug("Exporting method getAllSessionData");
 /**
- * Function to featch data from database.
+ * Function to fetch data from database.
  * @param {request} req req used by Express.js to fetch data from the client.
- *                      Used to fetch session_id from req.body.session_id and
- *                      the file name from req.body.originalname.
+ *                      Used to fetch session_id from the client.
  * @param {response} res res used by Express.js to send responses back to the
  *                       client.
  * @param {object} next
@@ -128,6 +127,17 @@ module.exports.getAllSessionData = function(req, res, next) {
   });
 }
 
+debug("Exporting method getItems");
+/**
+ * Function to fetch items list from database.
+ * @param {request} req req used by Express.js to fetch data from the client.
+ *                      Used to fetch session_id from the client.
+ * @param {response} res res used by Express.js to send responses back to the
+ *                       client.
+ * @param {object} next
+ * @return HTTP status 200 using res.send(). Returns a JSON object containing
+ * item list
+ */
 module.exports.getItems = function(req, res, next) {
   var b_id = req.body.session_id;
   billHelper.fetchBillItems(b_id).then(function (items_response) {
@@ -137,6 +147,17 @@ module.exports.getItems = function(req, res, next) {
   });
 }
 
+debug("Exporting method getUsers");
+/**
+ * Function to fetch users list from database.
+ * @param {request} req req used by Express.js to fetch data from the client.
+ *                      Used to fetch session_id from the client.
+ * @param {response} res res used by Express.js to send responses back to the
+ *                       client.
+ * @param {object} next
+ * @return HTTP status 200 using res.send(). Returns a JSON object containing
+ * users list
+ */
 module.exports.getUsers = function(req, res, next) {
   var b_id = req.body.session_id;
   billHelper.fetchBillUsers(b_id).then(function (users_response) {
@@ -146,6 +167,17 @@ module.exports.getUsers = function(req, res, next) {
   });
 }
 
+debug("Exporting method getOwner");
+/**
+ * Function to fetch users list from database.
+ * @param {request} req req used by Express.js to fetch data from the client.
+ *                      Used to fetch session_id from the client.
+ * @param {response} res res used by Express.js to send responses back to the
+ *                       client.
+ * @param {object} next
+ * @return HTTP status 200 using res.send(). Returns a JSON object containing
+ * bill owner
+ */
 module.exports.getOwner = function(req, res, next) {
   var b_id = req.body.session_id;
   billHelper.fetchBillOwner(b_id).then(function (owner_response) {
@@ -155,6 +187,18 @@ module.exports.getOwner = function(req, res, next) {
   });
 }
 
+debug("Exporting method validateSessionData");
+/**
+ * Function to determine that a Bill session exists and that a specified
+ * user belongs to it
+ * @param {request} req req used by Express.js to fetch data from the client.
+ *                      Used to fetch session_id and user_id from the client.
+ * @param {response} res res used by Express.js to send responses back to the
+ *                       client.
+ * @param {object} next
+ * @return HTTP status 200 using res.send(). Returns a JSON object containing
+ * true if the bill exists and the user is in it's users array, false otherwise
+ */
 module.exports.validateSessionData = function(req, res, next) {
   var session = req.body.session_id;
   var user = req.body.user_id;
@@ -163,10 +207,19 @@ module.exports.validateSessionData = function(req, res, next) {
   });
 }
 
+debug("Exporting method leaveSession");
+/**
+ * Function to remove user from session Bill
+ * @param {request} req req used by Express.js to fetch data from the client.
+ *                      Used to fetch session_id and user_id from the client.
+ * @param {response} res res used by Express.js to send responses back to the
+ *                       client.
+ * @param {object} next
+ * @return HTTP status 200 using res.send(). Returns a JSON object containing
+ * true if the user is removed from the bill, false otherwise
+ */
 module.exports.leaveSession = function (req, res, next) {
   debug("Leave Session called");
-  var session = req.body.session_id;
-
   var session = req.body.session_id;
   var user = req.body.user_id;
   var query = Bills.find({
@@ -178,17 +231,39 @@ module.exports.leaveSession = function (req, res, next) {
     debug("User removed: " + isRemoved);
     return res.status(200).send(isRemoved);
   });
-  //isDorment();
+  //isDormant();
 }
 
-module.exports.isDorment = function (req, res, next) {
-  debug("isDorment called");
+debug("Exporting method isDormant");
+/**
+ * Function to determine if bill is inactive
+ * @param {request} req req used by Express.js to fetch data from the client.
+ *                      Used to fetch session_id from the client.
+ * @param {response} res res used by Express.js to send responses back to the
+ *                       client.
+ * @param {object} next
+ * @return HTTP status 200 using res.send(). Calls the terminate function if
+ * bill is no longer active
+ */
+module.exports.isDormant = function (req, res, next) {
+  debug("isDormant called");
   var session = body.req.session_id;
   billHelper.isSessionEmpty(session).then(terminateSession(req, res, next));
   debug('Sending response (status: 200)');
   res.status(200).send("Success");
 }
 
+debug("Exporting method fetchUserClaims");
+/**
+ * Function to fetch all claims made by a user
+ * @param {request} req req used by Express.js to fetch data from the client.
+ *                      Used to fetch user_id from the client.
+ * @param {response} res res used by Express.js to send responses back to the
+ *                       client.
+ * @param {object} next
+ * @return HTTP status 200 using res.send(). Returns a JSON object containing
+ * the claims made by a user
+ */
 module.exports.fetchUserClaims = function(req, res, next) {
   var user_id = req.body.u_id;
   billHelper.fetchUserClaims(user_id).then(function(claims_response) {
