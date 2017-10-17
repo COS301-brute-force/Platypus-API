@@ -199,6 +199,15 @@ module.exports.validateSessionData = function(req, res, next) {
 }
 
 debug("Exporting method leaveSession");
+/**
+ * Function that will remove a user from their current session. Helper function
+ * removeUserFromDB() is called to remove them from the DB.
+ * @param {request} req used to fetch data from the client. session_id is
+ * fetched from req.body.session_id. user_id is fetched from req.body.user_id.
+ * @param {response} res used to send responses back to the client.
+ * @param {object} next
+ * @return HTTP status 200 is returned. Confirmation is returned as a Boolean.
+ */
 module.exports.leaveSession = function (req, res, next) {
   debug("Leave Session called");
   var session = req.body.session_id;
