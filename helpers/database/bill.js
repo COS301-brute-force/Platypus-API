@@ -109,6 +109,14 @@ module.exports.addUserToDB = function(session_id, nname, ucolor) {
 	});
 }
 
+/**
+ * This function is called to add a new user to the database for the current
+ * bill session.
+ * @param {bill_id} session_id This is the unique session ID to find the correct
+ *                             Session to add the user to.
+ * @param {String} nname This is the name of the new user.
+ * @param {String} ucolor The color selected by the user
+ */
 module.exports.removeUserFromDB = function(user_id, session_id) {
 	debug("removing user " + user_id + " from session " + session_id);
 	return new Promise(function (resolve) {
@@ -202,6 +210,8 @@ module.exports.addItemToDB = function(session_id, price, name, quantity) {
 		Bills.findOne({
 			bill_id: session_id
 		}, function (err, doc) {
+			debug("HERE");
+			debug(doc);
 			if (doc != null) {
 				var itid = session_id + dbutils.getItemId(doc.items_count + 1);
 				var item = new Items({
@@ -220,9 +230,6 @@ module.exports.addItemToDB = function(session_id, price, name, quantity) {
 				doc.bill_unclaimed_total += price;
 				doc.save(function (err) {
 					if (err) return handleError(err);
-					item.save(function (err) {
-						if (err) return handleError(err);
-					});
 				});
 				debug("Added item: " + doc.items_count);
 				var response = {
@@ -236,6 +243,7 @@ module.exports.addItemToDB = function(session_id, price, name, quantity) {
 						}
 					}
 				};
+				debug(response.data.attributes.i_item.i_name);
 				resolve(response);
 			}
 		});
@@ -521,7 +529,7 @@ module.exports.fetchBillItems = function(session_id) {
 					attributes: {
 						items: doc.bill_items,
 						bill_total: doc.bill_total,
-						unclaimed_total : doc.bill_unclaimed_total
+						bill_unclaimed_total : doc.bill_unclaimed_total
 					}
 				}
 			};

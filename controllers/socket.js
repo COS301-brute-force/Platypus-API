@@ -78,15 +78,15 @@ debug('Exporting method: createItem');
  * totals
  */
 function createItem(data) {
-	debug("createItem: SessionID: " + data.session_id + "price, name, quantity");
+	debug("createItem: SessionID: " + data.session_id + " " + data.price + " " + data.name + " " + data.quantity);
 	billHelper.addItemToDB(data.session_id, data.price, data.name, data.quantity).then(function (item_response) {
-		sendItem(item_response.item, data.session_id);
-		sendTotal(item_response.new_total, data.session_id);
-		sendUnclaimedTotal(item_response.new_unclaimed_total, data.session_id);
+		sendItem(item_response.data.attributes.i_item, data.session_id);
+		sendTotal(item_response.data.attributes.new_total, data.session_id);
+		sendUnclaimedTotal(item_response.data.attributes.new_unclaimed_total, data.session_id);
 	});
 }
 
-debug('Exporting method: editItem');
+debug('Exporting method:editItem');
 /**
  * Socket function to edit bill item
  * @param {object} data used to send data to the handler function
