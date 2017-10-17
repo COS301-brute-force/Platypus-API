@@ -181,6 +181,15 @@ module.exports.getOwner = function(req, res, next) {
 }
 
 debug("Exporting method validateSessionData");
+/**
+ * Function used to validate session data. Calls helper function
+ * validateSessionData() to return true or false.
+ * @param {request} req used to fetch data from the client. session_id is
+ * fetched from req.body.session_id.
+ * @param {response} res used to send responses back to the client.
+ * @param {object} next
+ * @return Boolean object returned to the client.
+ */
 module.exports.validateSessionData = function(req, res, next) {
   var session = req.body.session_id;
   var user = req.body.user_id;
