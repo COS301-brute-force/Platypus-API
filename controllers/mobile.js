@@ -77,7 +77,7 @@ module.exports.joinSession = function (req, res, next) {
 debug("Exporting method sendImage");
 /**
  * Function call to upload a file to the server. Image is saved in ./uploads.
- * Image name is added to the database. OCR module is informed of the image 
+ * Image name is added to the database. OCR module is informed of the image
  * file. Character recognition is performed and a text response is received
  * from OCR module, and processed
  * @param {request} req req used by Express.js to fetch data from the client.
@@ -128,6 +128,7 @@ module.exports.getAllSessionData = function(req, res, next) {
   });
 }
 
+debug("Exporting method getAllSessionData");
 module.exports.getItems = function(req, res, next) {
   var b_id = req.body.session_id;
   billHelper.fetchBillItems(b_id).then(function (items_response) {
@@ -137,6 +138,7 @@ module.exports.getItems = function(req, res, next) {
   });
 }
 
+debug("Exporting method getUsers");
 module.exports.getUsers = function(req, res, next) {
   var b_id = req.body.session_id;
   billHelper.fetchBillUsers(b_id).then(function (users_response) {
@@ -146,6 +148,7 @@ module.exports.getUsers = function(req, res, next) {
   });
 }
 
+debug("Exporting method getOwner");
 module.exports.getOwner = function(req, res, next) {
   var b_id = req.body.session_id;
   billHelper.fetchBillOwner(b_id).then(function (owner_response) {
@@ -155,6 +158,7 @@ module.exports.getOwner = function(req, res, next) {
   });
 }
 
+debug("Exporting method validateSessionData");
 module.exports.validateSessionData = function(req, res, next) {
   var session = req.body.session_id;
   var user = req.body.user_id;
@@ -163,6 +167,7 @@ module.exports.validateSessionData = function(req, res, next) {
   });
 }
 
+debug("Exporting method leaveSession");
 module.exports.leaveSession = function (req, res, next) {
   debug("Leave Session called");
   var session = req.body.session_id;
@@ -181,6 +186,7 @@ module.exports.leaveSession = function (req, res, next) {
   //isDorment();
 }
 
+debug("Exporting method isDorment");
 module.exports.isDorment = function (req, res, next) {
   debug("isDorment called");
   var session = body.req.session_id;
@@ -189,6 +195,7 @@ module.exports.isDorment = function (req, res, next) {
   res.status(200).send("Success");
 }
 
+debug("Exporting method fetchUserClaims");
 module.exports.fetchUserClaims = function(req, res, next) {
   var user_id = req.body.u_id;
   billHelper.fetchUserClaims(user_id).then(function(claims_response) {
