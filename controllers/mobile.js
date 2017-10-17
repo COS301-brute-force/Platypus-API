@@ -141,7 +141,7 @@ module.exports.getItems = function(req, res, next) {
 debug("Exporting method getUsers");
 /**
  * Function to get all users from the current session. session_id is passed to
- * helper function billHelper.fetchBillUsers. The response is returned to the
+ * helper function fetchBillUsers(). The response is returned to the
  * client.
  * @param {request} req used to fetch data from the client. session_id is
  * fetched from req.body.session_id.
@@ -160,6 +160,17 @@ module.exports.getUsers = function(req, res, next) {
 }
 
 debug("Exporting method getOwner");
+/**
+ * Function to get and return the details of the owner of the bill, the user
+ * who created the session. Helper function fetchBillOwner() is used to query
+ * the DB.
+ * @param {request} req used to fetch data from the client. session_id is
+ * fetched from req.body.session_id.
+ * @param {response} res used to send responses back to the client.
+ * @param {object} next
+ * @return HTTP response 200 is sent using res.status(). A JSON is returned to
+ * the client containing the details of the bill owner.
+ */
 module.exports.getOwner = function(req, res, next) {
   var b_id = req.body.session_id;
   billHelper.fetchBillOwner(b_id).then(function (owner_response) {
