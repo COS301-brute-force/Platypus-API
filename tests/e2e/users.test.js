@@ -1,6 +1,16 @@
+/**
+ * @file This file implements the unit tests that are executed using 'npm test'
+ * and also run on Travis.
+ */
+
 var assert = require('assert');
 var request = require('supertest');
 
+/**
+ * This function implements the unit tests that are run with 'npm test' as well
+ * as what's built and tested on Travis.
+ * @return {[type]} Test will pass or fail.
+ */
 module.exports.test = function(){
   describe('session creation =>', function() {
     describe('POST /mobile/createSession =>', function() {
