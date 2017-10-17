@@ -111,8 +111,7 @@ debug("Exporting method getAllSessionData");
 /**
  * Function to featch data from database.
  * @param {request} req req used by Express.js to fetch data from the client.
- *                      Used to fetch session_id from req.body.session_id and
- *                      the file name from req.body.originalname.
+ *                      Used to fetch session_id from req.body.session_id.
  * @param {response} res res used by Express.js to send responses back to the
  *                       client.
  * @param {object} next
@@ -139,6 +138,17 @@ module.exports.getItems = function(req, res, next) {
 }
 
 debug("Exporting method getUsers");
+/**
+ * Function to get all users from the current session. session_id is passed to
+ * helper function billHelper.fetchBillUsers. The response is returned to the
+ * client.
+ * @param {request} req used to fetch data from the client. session_id is
+ * fetched from req.body.session_id.
+ * @param {response} res used to send responses back to the client.
+ * @param {object} next
+ * @return HTTP status 200 using res.status. Users_response is returned as JSON, 
+ * containing details about all users in the session
+ */
 module.exports.getUsers = function(req, res, next) {
   var b_id = req.body.session_id;
   billHelper.fetchBillUsers(b_id).then(function (users_response) {
