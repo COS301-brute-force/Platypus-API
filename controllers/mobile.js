@@ -45,7 +45,8 @@ module.exports.createSession = function (req, res, next) {
 debug('Exporting method: joinSession');
 /**
  * This route is called to allow a new user to join an existing session. Data
- * is fetched from the client. addUserToDB() is then called to perform the
+ * is fetched from the client. Helper function fetchBillData is used to fetch
+ * data from the DB. Helper function addUserToDB() is then called to perform the
  * adding of new client data to the session.
  * @param {request} req req used by Express.js to fetch data from the client.
  *                      Used to fetch: req.body.session_id, req.body.nickname
@@ -146,7 +147,7 @@ debug("Exporting method getUsers");
  * fetched from req.body.session_id.
  * @param {response} res used to send responses back to the client.
  * @param {object} next
- * @return HTTP status 200 using res.status. Users_response is returned as JSON, 
+ * @return HTTP status 200 using res.status. Users_response is returned as JSON,
  * containing details about all users in the session
  */
 module.exports.getUsers = function(req, res, next) {
