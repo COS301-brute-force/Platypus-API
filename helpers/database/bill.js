@@ -760,6 +760,13 @@ module.exports.getOriginalImage = function(session_id) {
   res.status(200).send("Success");
 } */
 
+/**
+ * The function called to validate the session data that is stored in the DB.
+ * @param {ObjectId} session The ID for the session that is being validated.
+ * @param {ObjectId} user The ID for the user to be validated in the session.
+ * @return {JSON} Response is a JSON object with a 'valid' attribute that will
+ * be true or flase.
+ */
 module.exports.validateSessionData = function (session, user) {
 	return new Promise(function (resolve) {
 		debug("Validating: "+session);
