@@ -8,7 +8,7 @@ var MTypes		= mongoose.Types;
 var debug			= require('debug')('platypus-api:helpers:bill');
 
 /**
- * Function that receives the user data (Nickname and profile color) entered
+ * Helper Function that receives the user data (Nickname and profile color) entered
  * when a user requests a new session. A new user is created. A new bill and
  * session are also created. The new user is then added to the bill.
  * @param {request} req req used by Express.js to fetch data from the client.
@@ -46,7 +46,7 @@ module.exports.createSession = function () {
 }
 
 /**
- * This function is called to add a new user to the database for the current
+ * This helper function is called to add a new user to the database for the current
  * bill session.
  * @param {bill_id} session_id This is the unique session ID to find the correct
  *                             Session to add the user to.
@@ -103,6 +103,12 @@ module.exports.addUserToDB = function(session_id, nname, ucolor) {
 	});
 }
 
+/**
+ * Helper function that will remove a user from the database for the given session.
+ * @param {JSON} user_id user_id data retrieved from the client.
+ * @param {JSON} session_id session_id data retrieved from the client.
+ * @return A boolean value confirming the removal of the user from the DB.
+ */
 module.exports.removeUserFromDB = function(user_id, session_id) {
 	debug("removing user " + user_id + " from session " + session_id);
 	return new Promise(function (resolve) {
