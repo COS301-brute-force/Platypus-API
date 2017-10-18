@@ -497,7 +497,7 @@ module.exports.deleteItem = function(data) {
 
 /**
  * This function will calculate the total value for the bill based on all the
- * items in the session.
+ * items in the session. This value is saved in the session in the DB.
  * @param {ObjectId} session_id ID for the session for the bill, retrieved from
  * the client.
  * @return {Number} returns the total for the bill.
@@ -519,6 +519,12 @@ module.exports.calculateTotal = function(session_id) {
 	});
 }
 
+/**
+ * This function will calculate the total for all claimed items in the session.
+ * This value is then saved in the session in the DB.
+ * @param {ObjectId} session_id The ID for the session for bill.
+ * @return {number} The total for all claimed items.
+ */
 module.exports.calculateClaimedTotal = function(session_id) {
 	return new Promise(function(resolve) {
 		Bills.findOne({
