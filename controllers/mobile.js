@@ -237,6 +237,15 @@ module.exports.leaveSession = function (req, res, next) {
 }
 
 debug("Exporting method isDorment");
+/**
+ * Function that checks if there are any users still left in the session. If not
+ * then terminateSession() is terminated.
+ * @param {request} req used to fetch data from the client. session_id is
+ * fetched from req.body.session_id.
+ * @param {response} res used to send responses back to the client.
+ * @param {object} next
+ * @return HTTP status 200 is returned using res.status().
+ */
 module.exports.isDorment = function (req, res, next) {
   debug("isDorment called");
   var session = body.req.session_id;
