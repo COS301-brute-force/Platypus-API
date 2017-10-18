@@ -255,6 +255,16 @@ module.exports.isDorment = function (req, res, next) {
 }
 
 debug("Exporting method fetchUserClaims");
+/**
+ * Fetches the items that a user has claimed from the session and return them
+ * to the client.
+ * @param {request} req used to fetch data from the client. user_id is
+ * fetched from req.body.user_id.
+ * @param {response} res used to send responses back to the client.
+ * @param {object} next
+ * @return HTTP status 200 is returned using res.status(). The claimed items are
+ * also sent back to the client.
+ */
 module.exports.fetchUserClaims = function(req, res, next) {
   var user_id = req.body.user_id;
   billHelper.fetchUserClaims(user_id).then(function(claims_response) {
