@@ -19,14 +19,14 @@ var its = [	{price: '36.00', quantity: '3', desc: "Add Portion Chi", id: '1'},
 {price: '7.00', quantity: '1', desc: "Lime Cordial", id: '11'}];
 
 /**
- * @TODO Once this method is correctly implemented complete documentation.
+ * This function passes the captured image from the client to OCR for analysis.
  * @param {request} req req used by Express.js to fetch data from the client.
  * @param {response} res res used by Express.js to send responses back to the
  *                       client.
  * @param {object} next
  * @return JSON object containing Bill information
  */
-debug('Exporting method: @todo');
+debug('Exporting method: Detect');
 module.exports.detect = function(target_path, bill) {
   return new Promise(function(resolve, reject){
     var ocr_module = config.servers.ocr.host;
