@@ -1,3 +1,8 @@
+/**
+ * @file This file implements database utility functions for the generatrion of
+ * IDs for the bill, items and users that are added to a session.
+ */
+
 var mongoose = require('mongoose');
 var Bills = require('../../models/bills');
 var Users = require('../../models/users');
@@ -5,6 +10,11 @@ var Items = require('../../models/items');
 var MTypes = mongoose.Types;
 var debug = require('debug')('platypus-api:helpers:dbutils');
 
+/**
+ * This function generates a random ID for each individual session as its
+ * created.
+ * @return {String} A string of 5 characters that will be the session ID.
+ */
 module.exports.generateBillID = function () {
 	var alphabet = 'abcdefghjklmnopqrstvwxyz';
 	var numbers = '0123456789';
@@ -33,6 +43,11 @@ module.exports.generateBillID = function () {
 	return bill_id_temp;
 }
 
+/**
+ * This function generates an ID for a user based on the session they are a part
+ * of.
+ * @return {String} The unique User ID.
+ */
 module.exports.getUserId = function (num) {
 	var new_uid = (num + 1).toString();
 
@@ -44,6 +59,11 @@ module.exports.getUserId = function (num) {
 	return new_uid;
 }
 
+/**
+ * This function generates an ID for an item based on the session it is a part
+ * of.
+ * @return {String} The unique Item ID.
+ */
 module.exports.getItemId = function (num) {
   var new_iID = (num + 1).toString();
 
