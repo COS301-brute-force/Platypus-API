@@ -1,6 +1,6 @@
 /**
  * @file This file implements the defined routes for use by the mobile
- * componant.
+ * component.
  */
 var config = require('config');
 var debug = require('debug')('platypus-api:controllers:mobile');
@@ -36,14 +36,14 @@ function listenerHandler() {
 function claimItem(data) {
 	billHelper.claimItem(data).then(function(item_response){
 		sendItem(item_response.i_response, data.session_id);
-		sendUnclaimedTotal(item_response.new_unclaimed_total, data.session_id);
+		sendUnclaimedTotal(item_response.bill_unclaimed_total, data.session_id);
 	});
 };
 
 function unclaimItem(data) {
 	billHelper.unclaimItem(data).then(function(item_response){
 		sendItem(item_response.i_response, data.session_id);
-		sendUnclaimedTotal(item_response.new_unclaimed_total, data.session_id);
+		sendUnclaimedTotal(item_response.bill_unclaimed_total, data.session_id);
 	});
 };
 
@@ -52,16 +52,16 @@ function deleteItem(data) {
 		debug("Delete Item Called");
 		sendRemoveItem(item_response.i_id, data.session_id);
 		sendTotal(item_response.new_total, data.session_id);
-		sendUnclaimedTotal(item_response.new_unclaimed_total, data.session_id);
+		sendUnclaimedTotal(item_response.bill_unclaimed_total, data.session_id);
 	});
 }
 
 function createItem(data) {
 	debug("createItem: SessionID: " + data.session_id + "price, name, quantity");
 	billHelper.addItemToDB(data.session_id, data.price, data.name, data.quantity).then(function (item_response) {
-		sendItem(item_response.item, data.session_id);
+		sendItem(item_response.i_response, data.session_id);
 		sendTotal(item_response.new_total, data.session_id);
-		sendUnclaimedTotal(item_response.new_unclaimed_total, data.session_id);
+		sendUnclaimedTotal(item_response.bill_unclaimed_total, data.session_id);
 	});
 }
 
@@ -70,7 +70,7 @@ function editItem(data) {
 	billHelper.editItem(data).then(function (item_response) {
 		sendItem(item_response.i_response, data.session_id);
 		sendTotal(item_response.new_total, data.session_id);
-		sendUnclaimedTotal(item_response.new_unclaimed_total, data.session_id);
+		sendUnclaimedTotal(item_response.bill_unclaimed_total, data.session_id);
 	});
 }
 
@@ -109,14 +109,14 @@ function sendTotal(total, session_id) {
 
 function sendUnclaimedTotal(utotal, session_id) {
 	debug("Sending Unclaimed Total for session: " + session_id);
-	debug(utotal);
+	debug("uTotal:" + utotal);
 	var response = {
 		data: {
 			type: 'updated_unclaimed_total',
 			id: 0,
 			attributes: {
 				session_id: session_id,
-				n_unclaimed_total: utotal
+				bill_unclaimed_total: utotal
 			}
 		}
 	};

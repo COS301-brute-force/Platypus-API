@@ -1,5 +1,5 @@
 /**
- * @file This file implements the defined routes for use by the OCR componant
+ * @file This file implements the defined routes for use by the OCR component
  */
 var config      = require('config');
 var debug       = require('debug')('platypus-api:controllers:ocr');
@@ -44,7 +44,7 @@ module.exports.detect = function(target_path, bill) {
     var formData = {
       file: fs.createReadStream(target_path),
     };
-    //request.post({url:'http://192.168.43.144' + /*+ ocr_module +*/ ':' + ocr_port + '/', formData: formData, json: true}, function optionalCallback(err, httpResponse, body) {
+    // request.post({url:'http://192.168.43.144' + /*+ ocr_module +*/ ':' + ocr_port + '/', formData: formData, json: true}, function optionalCallback(err, httpResponse, body) {
     request.post({url:`http://${ocr_module}:${ocr_port}/`, formData: formData, json: true}, function optionalCallback(err, httpResponse, body) {
       if (err) {
         debug("OCR Failed");
@@ -53,12 +53,12 @@ module.exports.detect = function(target_path, bill) {
       }
       debug("Body: ");
       debug(body);
-      // if(body.type == 'success') {
-      //   response.data.attributes.items = body.attributes.data;
-      // }
-      // else{
+      if(response != null && body.type == 'success' && body.attributes.data.length > 0) {
+        response.data.attributes.items = body.attributes.data;
+      }
+      else{
         response.data.attributes.items = its;
-      //}
+      }
 
       debug('Sending response (status: 200)');
       resolve(response);

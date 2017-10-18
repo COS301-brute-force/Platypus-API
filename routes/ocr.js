@@ -1,5 +1,5 @@
 /**
- * @file This defines the routes to be used by the OCR componant.
+ * @file This defines the routes to be used by the OCR component.
  */
 var debug     = require('debug')('platypus-api:routes:ocr');
 var express   = require('express');

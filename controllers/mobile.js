@@ -1,6 +1,6 @@
 /**
  * @file This file implements the defined routes for use by the mobile
- * componant. As well as helper functions for these routes.
+ * component. As well as helper functions for these routes.
  */
 var debug = require('debug')('platypus-api:controllers:mobile');
 var fs = require('fs');
@@ -110,7 +110,7 @@ module.exports.sendImage = function (req, res, next) {
 
 debug("Exporting method getAllSessionData");
 /**
- * Function to featch data from database.
+ * Function to fetch data from database.
  * @param {request} req req used by Express.js to fetch data from the client.
  *                      Used to fetch session_id from req.body.session_id.
  * @param {response} res res used by Express.js to send responses back to the
@@ -128,7 +128,17 @@ module.exports.getAllSessionData = function(req, res, next) {
   });
 }
 
-debug("Exporting method getAllSessionData");
+debug("Exporting method getItems");
+/**
+ * Function to fetch items from database.
+ * @param {request} req req used by Express.js to fetch data from the client.
+ *                      Used to fetch session_id from req.body.session_id.
+ * @param {response} res res used by Express.js to send responses back to the
+ *                       client.
+ * @param {object} next
+ * @return HTTP status 200 using res.send(). Returns a JSON object containing
+ * Session Items
+ */
 module.exports.getItems = function(req, res, next) {
   var b_id = req.body.session_id;
   billHelper.fetchBillItems(b_id).then(function (items_response) {
@@ -237,7 +247,7 @@ module.exports.isDorment = function (req, res, next) {
 
 debug("Exporting method fetchUserClaims");
 module.exports.fetchUserClaims = function(req, res, next) {
-  var user_id = req.body.u_id;
+  var user_id = req.body.user_id;
   billHelper.fetchUserClaims(user_id).then(function(claims_response) {
     return res.status(200).send(claims_response);
   });
