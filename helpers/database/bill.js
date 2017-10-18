@@ -8,7 +8,7 @@ var MTypes		= mongoose.Types;
 var debug			= require('debug')('platypus-api:helpers:bill');
 
 /**
- * Helper Function that receives the user data (Nickname and profile color) entered
+ * Function that receives the user data (Nickname and profile color) entered
  * when a user requests a new session. A new user is created. A new bill and
  * session are also created. The new user is then added to the bill.
  * @param {request} req req used by Express.js to fetch data from the client.
@@ -46,7 +46,7 @@ module.exports.createSession = function () {
 }
 
 /**
- * This helper function is called to add a new user to the database for the current
+ * Function is called to add a new user to the database for the current
  * bill session.
  * @param {bill_id} session_id This is the unique session ID to find the correct
  *                             Session to add the user to.
@@ -104,7 +104,7 @@ module.exports.addUserToDB = function(session_id, nname, ucolor) {
 }
 
 /**
- * Helper function that will remove a user from the database for the given session.
+ * Function that will remove a user from the database for the given session.
  * @param {JSON} user_id user_id data retrieved from the client.
  * @param {JSON} session_id session_id data retrieved from the client.
  * @return {boolean} A boolean value confirming the removal of the user from the DB.
@@ -134,7 +134,7 @@ module.exports.removeUserFromDB = function(user_id, session_id) {
 }
 
 /**
- * Helper fucntion that checks if the session passed by the client is empty,
+ * Fucntion that checks if the session passed by the client is empty,
  * there are no users in the session.
  * @param {JSON} session_id The session ID that is passed from the client.
  * @return {Boolean} True if the session is empty, false otherwise.
@@ -159,7 +159,7 @@ module.exports.isSessionEmpty = function (session_id) {
 }
 
 /**
- * Helper function that populates the database entry for a session with the bill
+ * Function that populates the database entry for a session with the bill
  * items for that session.
  * @param {JSON} items An array of all the items from OCR.
  * @param {JSON} session_id The id for the session to which to add the items.
@@ -218,12 +218,13 @@ module.exports.populateItems = function(items, session_id, image) {
 }
 
 /**
- * Helper function for when a user is manually adding individual items to the
+ * Function for when a user is manually adding individual items to the
  * DB for the session.
  * @param {ObjectId} session_id The ID for the session to which to add the items.
  * @param {Number} price The price for the item, retrieved from the client.
  * @param {Number} name The item description, retrieved from the client.
  * @param {Integer} quantity The quantity of the item added, retrieved form client.
+ * @return {JSON} The item that was added to the database.
  */
 module.exports.addItemToDB = function(session_id, price, name, quantity) {
 	return new Promise(function (resolve, reject) {
@@ -265,6 +266,14 @@ module.exports.addItemToDB = function(session_id, price, name, quantity) {
 	});
 }
 
+/**
+ * Function to handle users on the client side claiming items as their's.
+ * Updates the quantity available and saves the changes to the DB.
+ * @param {JSON} data Contains all the imformation for the item being claimed,
+ * including the session_id, the user_id and the item_id.
+ * @return {JSON} Returns the data about the claimed item, including the user_id,
+ *  the item, the quantity and the bill_unclaimed_total.
+ */
 module.exports.claimItem = function (data) {
 	return new Promise(function (resolve, reject) {
 		var claimed = false;
