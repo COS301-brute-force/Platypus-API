@@ -692,6 +692,11 @@ module.exports.fetchBillOwner = function(session_id) {
 	});
 }
 
+/**
+ * This function finds the items that have been claimed by a specific user.
+ * @param {ObjectId} userId The ID for the user to find the items claimed for.
+ * @return {JSON} returns the item_claimed from the doc for the session.
+ */
 module.exports.fetchUserClaims = function(userId) {
 	return new Promise(function (resolve) {
 		Users.findOne({
