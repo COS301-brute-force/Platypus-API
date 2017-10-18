@@ -630,15 +630,6 @@ module.exports.getOriginalImage = function(session_id) {
 	});
 }
 
-/**
- * This module will terminate the existing session when called.
- * @param {request} req req used by Express.js to fetch data from the client.
- *                      Session is fetched from req.body.session_id.
- * @param {response} res res used by Express.js to send responses back to the
- *                       client.
- * @param {object} next
- * @returns HTTP status 200 using res.send().
- */
 /* module.exports.terminateSession = function (req, res, next) {
   debug("Terminate Session called");
 
