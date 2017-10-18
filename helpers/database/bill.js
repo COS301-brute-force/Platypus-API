@@ -605,6 +605,11 @@ module.exports.fetchBillData = function(session_id) {
 	});
 }
 
+/**
+ * This function will return all of the items in the session.
+ * @param {ObjectId} session_id The ID for the session.
+ * @return {JSON} Contains the bill_items, bill_total and bill_unclaimed_total.
+ */
 module.exports.fetchBillItems = function(session_id) {
 	return new Promise(function (resolve) {
 		Bills.findOne({
@@ -630,6 +635,12 @@ module.exports.fetchBillItems = function(session_id) {
 	});
 }
 
+/**
+ * This function will fetch all the users that are in the current session.
+ * @param {ObjectId} session_id The ID for the session to search through.
+ * @return {JSON} Object that contains array of all the users in the current
+ * sesson.
+ */
 module.exports.fetchBillUsers = function(session_id) {
 	return new Promise(function (resolve) {
 		Bills.findOne({
