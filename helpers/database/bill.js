@@ -721,6 +721,13 @@ module.exports.fetchUserClaims = function(userId) {
 	});
 }
 
+/**
+ * This function will fetch the original image captured at session creation from
+ * the database.
+ * @param {ObjectId} session_id The ID for the session for which the original
+ * image is being requested.
+ * @return {String} file path and name for the image in the DB.
+ */
 module.exports.getOriginalImage = function(session_id) {
 	return new promise(function(resolve) {
 		Bills.findOne({
