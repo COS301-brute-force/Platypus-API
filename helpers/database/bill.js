@@ -574,6 +574,12 @@ module.exports.calculateUnclaimedTotal = function(session_id) {
 	});
 }
 
+/**
+ * This function will obtain all bill data, including all the items in it, all
+ * the users, session_id.
+ * @param {ObjectId} session_id The ID for the session of the bill.
+ * @return {JSON} Contains all the required information.
+ */
 module.exports.fetchBillData = function(session_id) {
 	return new Promise(function (resolve) {
 		Bills.findOne({
