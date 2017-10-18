@@ -158,6 +158,14 @@ module.exports.isSessionEmpty = function (session_id) {
 	});
 }
 
+/**
+ * Helper function that populates the database entry for a session with the bill
+ * items for that session.
+ * @param {JSON} items An array of all the items from OCR.
+ * @param {JSON} session_id The id for the session to which to add the items.
+ * @param {String} image filename for the original image.
+ * @return {JSON} the bill_items are returned to the client.
+ */
 module.exports.populateItems = function(items, session_id, image) {
 	return new Promise(function (resolve, reject) {
 		Bills.findOne({
@@ -209,6 +217,14 @@ module.exports.populateItems = function(items, session_id, image) {
 	});
 }
 
+/**
+ * Helper function for when a user is manually adding individual items to the
+ * DB for the session.
+ * @param {ObjectId} session_id The ID for the session to which to add the items.
+ * @param {Number} price The price for the item, retrieved from the client.
+ * @param {Number} name The item description, retrieved from the client.
+ * @param {Integer} quantity The quantity of the item added, retrieved form client.
+ */
 module.exports.addItemToDB = function(session_id, price, name, quantity) {
 	return new Promise(function (resolve, reject) {
 		debug("SessionID" + session_id);
