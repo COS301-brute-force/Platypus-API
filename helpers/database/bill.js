@@ -664,6 +664,12 @@ module.exports.fetchBillUsers = function(session_id) {
 	});
 }
 
+/**
+ * This function finds the bill owner of the specifed session. It is read from
+ * the DB entry for the session.
+ * @param {ObjectId} session_id The ID of the session.
+ * @return {JSON} Object containing the user ID and user nickname of the owner.
+ */
 module.exports.fetchBillOwner = function(session_id) {
 	return new Promise(function (resolve) {
 		Bills.findOne({
