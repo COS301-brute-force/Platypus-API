@@ -549,6 +549,13 @@ module.exports.calculateClaimedTotal = function(session_id) {
 	});
 }
 
+/**
+ * This function calculates the unclaimed total for the session passed. This
+ * value is then saved to the DB for the session.
+ * @param {ObjectId} session_id The ID for the session for which to calculate
+ * the unclaimed total.
+ * @return {Number} The unclaimed total for the session.
+ */
 module.exports.calculateUnclaimedTotal = function(session_id) {
 	var total = calculateUnclaimedTotal(session_id);
 	var claimed = calculateTotal(session_id);
