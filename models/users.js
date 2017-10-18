@@ -1,3 +1,6 @@
+/**
+ * @file This file defines the schema for the Users document in the DB.
+ */
 var debug       = require('debug')('platypus-api:models:users');
 var mongoose    = require('mongoose');
 var Claims      = require('./claims');

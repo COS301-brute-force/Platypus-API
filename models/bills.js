@@ -1,3 +1,6 @@
+/**
+ * @file This file defines the schema for the Bill document for the DB.
+ */
 var bcrypt = require('bcryptjs');
 var debug = require('debug')('platypus-api:models:bills');
 var mongoose = require('mongoose');

@@ -1,3 +1,6 @@
+/**
+ * @file This file defines the schema for the Items document in the DB.
+ */
 var bcrypt      = require('bcryptjs');
 var debug       = require('debug')('platypus-api:models:items');
 var mongoose    = require('mongoose');

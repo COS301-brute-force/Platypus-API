@@ -1,3 +1,6 @@
+/**
+ * @file This file defines the schema for item claims by users.
+ */
 var bcrypt      = require('bcryptjs');
 var debug       = require('debug')('platypus-api:models:claims');
 var mongoose    = require('mongoose');
