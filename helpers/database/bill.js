@@ -438,6 +438,14 @@ module.exports.editItem = function(data) {
 	});
 }
 
+/**
+ * Function for a user to delete an from the session. The item is removed from
+ * the DB.
+ * @param {JSON} data Contains all data for the item being deleted, including
+ * item_id, session_id.
+ * @return {JSON} reurns the item_id for the item that was removed, the new
+ * bill_total and new bill_unclaimed_total.
+ */
 module.exports.deleteItem = function(data) {
 	return new Promise(function (resolve, reject) {
 		debug("deleteItem: SessionID: " + data.session_id + " ItemID: " + data.item_id);
