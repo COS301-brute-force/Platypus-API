@@ -11,10 +11,6 @@ var debug			= require('debug')('platypus-api:helpers:bill');
  * Function that receives the user data (Nickname and profile color) entered
  * when a user requests a new session. A new user is created. A new bill and
  * session are also created. The new user is then added to the bill.
- * @param {request} req req used by Express.js to fetch data from the client.
- * @param {response} res res used by Express.js to send responses back to the
- *                       client.
- * @param {object} next
  * @return JSON object containing session ID and user ID
  */
 module.exports.createSession = function () {
@@ -48,7 +44,7 @@ module.exports.createSession = function () {
 /**
  * Function is called to add a new user to the database for the current
  * bill session.
- * @param {bill_id} session_id This is the unique session ID to find the correct
+ * @param {ObjectId} session_id This is the unique session ID to find the correct
  *                             Session to add the user to.
  * @param {String} nname This is the name of the new user.
  * @param {String} ucolor The color selected by the user
@@ -106,7 +102,7 @@ module.exports.addUserToDB = function(session_id, nname, ucolor) {
 /**
  * Function that will remove a user from the database for the given session.
  * @param {JSON} user_id user_id data retrieved from the client.
- * @param {JSON} session_id session_id data retrieved from the client.
+ * @param {ObjectId} session_id session_id data retrieved from the client.
  * @return {boolean} A boolean value confirming the removal of the user from the DB.
  */
 module.exports.removeUserFromDB = function(user_id, session_id) {
@@ -136,7 +132,7 @@ module.exports.removeUserFromDB = function(user_id, session_id) {
 /**
  * Fucntion that checks if the session passed by the client is empty,
  * there are no users in the session.
- * @param {JSON} session_id The session ID that is passed from the client.
+ * @param {ObjectId} session_id The session ID that is passed from the client.
  * @return {Boolean} True if the session is empty, false otherwise.
  */
 module.exports.isSessionEmpty = function (session_id) {
@@ -162,7 +158,7 @@ module.exports.isSessionEmpty = function (session_id) {
  * Function that populates the database entry for a session with the bill
  * items for that session.
  * @param {JSON} items An array of all the items from OCR.
- * @param {JSON} session_id The id for the session to which to add the items.
+ * @param {ObjectId} session_id The id for the session to which to add the items.
  * @param {String} image filename for the original image.
  * @return {JSON} the bill_items are returned to the client.
  */
@@ -443,7 +439,7 @@ module.exports.editItem = function(data) {
  * the DB.
  * @param {JSON} data Contains all data for the item being deleted, including
  * item_id, session_id.
- * @return {JSON} reurns the item_id for the item that was removed, the new
+ * @return {JSON} returns the item_id for the item that was removed, the new
  * bill_total and new bill_unclaimed_total.
  */
 module.exports.deleteItem = function(data) {
@@ -499,6 +495,13 @@ module.exports.deleteItem = function(data) {
 	});
 }
 
+/**
+ * This function will calculate the total value for the bill based on all the
+ * items in the session.
+ * @param {ObjectId} session_id ID for the session for the bill, retrieved from
+ * the client.
+ * @return {Number} returns the total for the bill.
+ */
 module.exports.calculateTotal = function(session_id) {
 	return new Promise(function(resolve) {
 		Bills.findOne({
