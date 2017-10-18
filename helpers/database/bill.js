@@ -386,6 +386,13 @@ module.exports.unclaimItem = function (data) {
 	});
 }
 
+/**
+ * Function for a user to edit the items on the bill. This is then saved to the
+ * session data in the DB.
+ * @param {JSON} data Contains all data for the item being edited, including
+ * item_id, session_id.
+ * @return {JSON} Returns the item, new bill_total and new bill_unclaimed_total.
+ */
 module.exports.editItem = function(data) {
 	return new Promise(function (resolve, reject) {
 		Items.findOne({
