@@ -347,6 +347,14 @@ module.exports.claimItem = function (data) {
 	});
 }
 
+/**
+ * Function for a user to unclaim an item they previously claimed. Updates the
+ * quantity available, and saves the data to the DB.
+ * @param {JSON} data Contains all data for the item being unclaimed, including
+ * item_id, session_id.
+ * @return {JSON} reurns the item and bill_unclaimed_total after it has been
+ * unclaimed.
+ */
 module.exports.unclaimItem = function (data) {
 	return new Promise(function (resolve, reject) {
 		var priceOfClaim = 0;
