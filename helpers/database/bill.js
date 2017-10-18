@@ -1,3 +1,8 @@
+/**
+ * @file This file implements all the functions used to perform CRUD opperations
+ * on the DB, for session/bill management.
+ */
+
 var mongoose	= require('mongoose');
 var Bills 		= require('../../models/bills');
 var Users 		= require('../../models/users');
