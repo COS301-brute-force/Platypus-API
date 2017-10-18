@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: helpers/database/bill.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: helpers/database/bill.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file This file implements all the functions used to perform CRUD opperations
+ * on the DB, for session/bill management.
+ */
+
+var mongoose	= require('mongoose');
+var Bills 		= require('../../models/bills');
+var Users 		= require('../../models/users');
+var Claims 		= require('../../models/claims');
+var Items 		= require('../../models/items');
+var dbutils		= require('./dbutils');
+var MTypes		= mongoose.Types;
+var debug			= require('debug')('platypus-api:helpers:bill');
+
+/**
+ * Function that receives the user data (Nickname and profile color) entered
+ * when a user requests a new session. A new user is created. A new bill and
+ * session are also created. The new user is then added to the bill.
+ * @return JSON object containing session ID and user ID
+ */
+module.exports.createSession = function () {
+	return new Promise(function (resolve, reject) {
+		debug("Running Bill.Create Session");
+		var b_id = dbutils.generateBillID();
+		var user_added = "";
+
+		var bill = new Bills({
+			_id: new MTypes.ObjectId(),
+			bill_id: b_id,
+			bill_image: "",
+			users_count: 0,
+			items_count: 0,
+			users: [],
+			bill_items: [],
+			bill_total: 0,
+			bill_unclaimed_total: 0,
+			bill_owner: ""
+		});
+
+		bill.save(function (err) {
+			if (err) {
+				debug(err);
+			}
+				resolve (b_id);
+		});
+	});
+}
+
+/**
+ * Function is called to add a new user to the database for the current
+ * bill session.
+ * @param {ObjectId} session_id This is the unique session ID to find the correct
+ *                             Session to add the user to.
+ * @param {String} nname This is the name of the new user.
+ * @param {String} ucolor The color selected by the user
+ */
+module.exports.addUserToDB = function(session_id, nname, ucolor) {
+	return new Promise(function (resolve, reject) {
+		var finalid = null;
+		Bills.findOne({ bill_id: session_id },
+			function (err, doc) {
+				if (err || doc === null) {
+					console.log("Bill not found!");
+					// TODO: Fix error handling
+					return 0;
+				}
+
+				var bill_session = doc;
+				var user_count = bill_session.users_count;
+				var nickname = nname;
+				var user_color = ucolor;
+				var user_id = session_id + dbutils.getUserId(user_count);
+				var user_owner = (user_count == 0);
+
+				debug(user_count);
+				debug("Adding user: uid = " + user_id + ", uOwner = " + user_owner + ", uNickname = " + nickname + ", uColor = " + user_color);
+
+				var user = new Users({
+					_id: new MTypes.ObjectId(),
+					u_id: user_id,
+					u_owner: Boolean,
+					u_nickname: nickname,
+					u_color: user_color
+				});
+
+				bill_session.users.push(user);
+				var subdoc = bill_session.users[user_count];
+				subdoc.isNew;
+				bill_session.users_count = user_count + 1;
+				if(user_owner){
+					bill_session.bill_owner = user_id;
+				}
+
+				bill_session.save(function (err) {
+					if (err) return handleError(err);
+					user.save(function (err) {
+						if (err) return handleError(err);
+					});
+				});
+				debug("Added obj: " + bill_session.users[user_count - 1]);
+				resolve(user_id);
+			}
+		);
+	});
+}
+
+/**
+ * Function that will remove a user from the database for the given session.
+ * @param {JSON} user_id user_id data retrieved from the client.
+ * @param {ObjectId} session_id session_id data retrieved from the client.
+ * @return {boolean} A boolean value confirming the removal of the user from the DB.
+ */
+module.exports.removeUserFromDB = function(user_id, session_id) {
+	debug("removing user " + user_id + " from session " + session_id);
+	return new Promise(function (resolve) {
+		var isRemoved = false;
+		Bills.findOne({
+			bill_id: session_id
+		}, function (err, doc) {
+			if (err || doc === null) {
+				console.log("Bill not found!");
+				// TODO: Fix error handling
+				return 0;
+			}
+
+			var bill_session = doc;
+			var user_count = bill_session.users_count;
+
+			//@TODO: confirm that the following line removes the user from the DB
+			bill_session.users.update({u_id: user_id}, {$unset: {field: 1}});
+			isRemoved = true;
+			resolve(isRemoved);
+		})
+	});
+}
+
+/**
+ * Fucntion that checks if the session passed by the client is empty,
+ * there are no users in the session.
+ * @param {ObjectId} session_id The session ID that is passed from the client.
+ * @return {Boolean} True if the session is empty, false otherwise.
+ */
+module.exports.isSessionEmpty = function (session_id) {
+	return new promise(function (resolve) {
+		Bills.findOne({
+			bill_id: session_id
+		}, function (err, doc) {
+			var isEmpty;
+			var bill_session = doc;
+			var user_count = bill_session.users_count;
+			if(user_count == 0) {
+				isEmpty = true;
+			}
+			else {
+				isEmpty = false;
+			}
+			resolve(isEmpty);
+		});
+	});
+}
+
+/**
+ * Function that populates the database entry for a session with the bill
+ * items for that session.
+ * @param {JSON} items An array of all the items from OCR.
+ * @param {ObjectId} session_id The id for the session to which to add the items.
+ * @param {String} image filename for the original image.
+ * @return {JSON} the bill_items are returned to the client.
+ */
+module.exports.populateItems = function(items, session_id, image) {
+	return new Promise(function (resolve, reject) {
+		Bills.findOne({
+			bill_id: session_id
+		}, function (err, doc) {
+			var totalCalc = parseFloat(0);
+			items.forEach(function (iter) {
+				debug("Loop runs");
+				debug(iter);
+				var itid = session_id + dbutils.getItemId(doc.items_count);
+				var item = new Items({
+					_id: new MTypes.ObjectId(),
+					i_id: itid,
+					i_name: iter.desc,
+					i_quantity: parseInt(iter.quantity),
+					i_price: parseFloat(iter.price)
+				});
+				doc.bill_items.push(item);
+				var subdoc = doc.bill_items[doc.bill_items.length-1];
+				subdoc.isNew;
+				doc.items_count += 1;
+				totalCalc += (item.i_price * parseFloat(item.i_quantity));
+				debug("What total should be: ");
+				debug((item.i_price * parseFloat(item.i_quantity)));
+				debug("TOTAL: ");
+				debug(totalCalc);
+				item.save(function (err) {
+					if (err){
+						debug("Item Error: ");
+						debug(err);
+						return handleError(err);
+					}
+				});
+			});
+			doc.bill_total = totalCalc;
+			doc.bill_unclaimed_total = totalCalc;
+			doc.bill_image = image;
+			doc.save(function (err) {
+				if (err){
+					debug("Bill Error: ");
+					debug(err);
+					return handleError(err);
+				}
+			});
+			debug("Added item: " + doc.items_count);
+			debug(doc.bill_items);
+			resolve(doc.bill_items);
+		});
+	});
+}
+
+/**
+ * Function for when a user is manually adding individual items to the
+ * DB for the session.
+ * @param {ObjectId} session_id The ID for the session to which to add the items.
+ * @param {Number} price The price for the item, retrieved from the client.
+ * @param {Number} name The item description, retrieved from the client.
+ * @param {Integer} quantity The quantity of the item added, retrieved form client.
+ * @return {JSON} The item that was added to the database.
+ */
+module.exports.addItemToDB = function(session_id, price, name, quantity) {
+	return new Promise(function (resolve, reject) {
+		debug("SessionID" + session_id);
+		Bills.findOne({
+			bill_id: session_id
+		}, function (err, doc) {
+			if (doc != null) {
+				var itid = session_id + dbutils.getItemId(doc.items_count + 1);
+				var item = new Items({
+					_id: new MTypes.ObjectId(),
+					i_id: itid,
+					i_name: name,
+					i_quantity: parseInt(quantity),
+					i_price: parseFloat(price)
+				});
+				doc.bill_items.push(item);
+				debug(doc.bill_items[doc.bill_items.length-1]);
+				var subdoc = doc.bill_items[doc.bill_items.length-1];
+				subdoc.isNew;
+				doc.items_count += 1;
+				doc.bill_total += parseFloat(item.i_price * item.i_quantity);
+				doc.bill_unclaimed_total += parseFloat(item.i_price * item.i_quantity);
+				doc.save(function (err) {
+					if (err) return handleError(err);
+					item.save(function (err) {
+						if (err) return handleError(err);
+					});
+				});
+				debug("Added item: " + doc.items_count);
+				var response = {
+							i_response	:	item,
+							new_total	 : doc.bill_total,
+							bill_unclaimed_total : doc.bill_unclaimed_total
+				};
+				resolve(response);
+			}
+		});
+	});
+}
+
+/**
+ * Function to handle users on the client side claiming items as their's.
+ * Updates the quantity available and saves the changes to the DB.
+ * @param {JSON} data Contains all the imformation for the item being claimed,
+ * including the session_id, the user_id and the item_id.
+ * @return {JSON} Returns the data about the claimed item, including the user_id,
+ *  the item, the quantity and the bill_unclaimed_total.
+ */
+module.exports.claimItem = function (data) {
+	return new Promise(function (resolve, reject) {
+		var claimed = false;
+		var userAmountPrev = 0;
+		var priceOfClaim = 0;
+		debug("ClaimItem: SessionID: " + data.session_id + " UserID: " + data.user_id + " ItemID: " + data.item_id);
+		Users.findOne({
+			u_id: data.user_id
+		}).populate({
+			path: 'item_claimed'
+		}).exec(function (err, user) {
+			for (item in user.item_claimed) {
+				if (item.item_id == data.item_id) {
+					userAmountPrev = item.quantity;
+					item.quantity = data.quantity;
+					bill.save();
+					claimed = true;
+				}
+			}
+			if (!claimed) {
+				var claim = new Claims({
+					_id: new MTypes.ObjectId(),
+					item_id: data.item_id,
+					quantity: parseInt(data.quantity)
+				});
+				user.item_claimed.push(claim);
+				var subdoc = user.item_claimed[user.item_claimed.length - 1];
+				subdoc.isNew;
+				claim.save(function (err) {
+					if (err) return handleError(err);
+				});
+				user.save();
+			}
+			Items.findOne({
+				i_id: data.item_id
+			}, function (err, item) {
+				var qClaimed = 0;
+				if (item) {
+					if ((data.quantity - userAmountPrev) > item.i_quantity) {
+						qClaimed = item.i_quantity;
+						item.i_quantity = 0;
+					}
+					else {
+						qClaimed = data.quantity - userAmountPrev;
+						item.i_quantity = item.i_quantity - (data.quantity - userAmountPrev);
+					}
+					item.save(function (err) {
+						if (err) return handleError(err);
+					});
+				}
+				Bills.findOne({
+					bill_id: data.session_id
+				}, function (err, bill) {
+					if (bill) {
+						priceOfClaim = item.i_price * qClaimed;
+						bill.bill_unclaimed_total = bill.bill_unclaimed_total - priceOfClaim;
+						bill.save(function (err) {
+							if (err) return handleError(err);
+						});
+					}
+					var response = {
+						u_id : data.user_id,
+						i_response : item,
+						u_quantity : data.quantity,
+						bill_unclaimed_total : bill.bill_unclaimed_total
+					};
+					resolve(response);
+				});
+			});
+		});
+	});
+}
+
+/**
+ * Function for a user to unclaim an item they previously claimed. Updates the
+ * quantity available, and saves the data to the DB.
+ * @param {JSON} data Contains all data for the item being unclaimed, including
+ * item_id, session_id.
+ * @return {JSON} reurns the item and bill_unclaimed_total after it has been
+ * unclaimed.
+ */
+module.exports.unclaimItem = function (data) {
+	return new Promise(function (resolve, reject) {
+		var priceOfClaim = 0;
+		Items.findOne({
+			i_id: data.item_id
+		}, function (err, item) {
+			item.i_quantity = item.i_quantity + 1;
+			priceOfClaim = parseFloat(item.i_price);
+			item.save(function(err){
+				if (err) return handleError(err);
+			});
+
+			Bills.findOne({
+				bill_id: data.session_id
+			}, function (err, bill) {
+				if (bill) {
+					bill.bill_unclaimed_total = bill.bill_unclaimed_total + priceOfClaim;
+					bill.save(function (err) {
+						if (err) return handleError(err);
+					});
+				}
+				var response = {
+					i_response : item,
+					bill_unclaimed_total : bill.bill_unclaimed_total
+				};
+				resolve(response);
+			});
+		});
+	});
+}
+
+/**
+ * Function for a user to edit the items on the bill. This is then saved to the
+ * session data in the DB.
+ * @param {JSON} data Contains all data for the item being edited, including
+ * item_id, session_id.
+ * @return {JSON} Returns the item, new bill_total and new bill_unclaimed_total.
+ */
+module.exports.editItem = function(data) {
+	return new Promise(function (resolve, reject) {
+		Items.findOne({
+			i_id: data.item_id
+		}, function(err, item){
+			var oldPrice = parseFloat(item.i_price);
+			var oldQuantity = parseInt(item.i_quantity);
+			var claimsQuantity = parseInt(0);
+			item.i_name = data.name;
+			item.i_quantity = parseInt(data.quantity);
+			item.i_price = parseFloat(data.price);
+			debug(item.i_name + " " + item.i_quantity + " " + item.i_price);
+			item.save(function (err) {
+				if (err) return handleError(err);
+				});
+			Bills.findOne({
+				bill_id: data.session_id
+			}, function (err, doc) {
+				Claims.findOne({item_id: data.item_id}, function(err, claim){
+					if(claim) {
+						claimsQuantity = parseInt(claim.quantity);
+					}
+					doc.bill_total -= oldPrice * (oldQuantity + claimsQuantity);
+					doc.bill_total += item.i_price * (item.i_quantity + claimsQuantity);
+					doc.bill_unclaimed_total -= oldPrice * oldQuantity;
+					doc.bill_unclaimed_total += item.i_price * item.i_quantity;
+					doc.save(function (err) {
+						if (err) return handleError(err);
+						item.save(function (err) {
+							if (err) return handleError(err);
+						});
+					});
+					var response = {
+						i_response : item,
+						new_total	 : doc.bill_total,
+						bill_unclaimed_total : doc.bill_unclaimed_total
+					};
+					debug(response);
+					resolve(response);
+				});
+			});
+		});
+	});
+}
+
+/**
+ * Function for a user to delete an from the session. The item is removed from
+ * the DB.
+ * @param {JSON} data Contains all data for the item being deleted, including
+ * item_id, session_id.
+ * @return {JSON} returns the item_id for the item that was removed, the new
+ * bill_total and new bill_unclaimed_total.
+ */
+module.exports.deleteItem = function(data) {
+	return new Promise(function (resolve, reject) {
+		debug("deleteItem: SessionID: " + data.session_id + " ItemID: " + data.item_id);
+		var itemIdToRemove = null;
+		var priceToDeduct = 0;
+		var claimedPriceToDeduct = 0;
+		var i_idToRemove = "";
+		var claimsQuantity = 0;
+		var nTotal = 0;
+		var nUnclaimed = 0;
+		Items.findOne({
+			i_id: data.item_id
+		}, function(err, item){
+			Claims.findOne({item_id: data.item_id}, function(err, claim){
+				if(claim) {
+					claimsQuantity = parseInt(claim.quantity);
+				}
+				debug("Found item");
+				debug(item.i_id);
+				itemIdToRemove = item._id;
+				i_idToRemove = item.i_id;
+				priceToDeduct = item.i_price * (parseInt(item.i_quantity) + parseInt(claimsQuantity));
+				claimedPriceToDeduct = item.i_price * item.i_quantity;
+				debug("Quantity to deduct: ");
+				debug(priceToDeduct);
+				Claims.find({item_id: data.item_id}).remove().exec();
+				Bills.findOne({bill_id: data.session_id}, function(err, bill){
+					//bill.items_count -= 1;
+					bill.bill_total -= priceToDeduct;
+					nTotal = bill.bill_total;
+					bill.bill_unclaimed_total -= claimedPriceToDeduct;
+					nUnclaimed = bill.bill_unclaimed_total;
+					bill.bill_items.pull({_id: itemIdToRemove});
+					bill.save(function (err) {
+						if (err) return handleError(err);
+					});
+					Bills.update({
+						bill_id: data.session_id
+					}, {"$pull": {bill_items: {_id: itemIdToRemove}}}, function (err, doc) {
+						debug("Added item: " + doc.i_id);
+						var response = {
+									i_id	:	i_idToRemove,
+									new_total	 : nTotal,
+									bill_unclaimed_total : nUnclaimed
+								}
+						resolve(response);
+					});
+				});
+			});
+		});
+	});
+}
+
+/**
+ * This function will calculate the total value for the bill based on all the
+ * items in the session. This value is saved in the session in the DB.
+ * @param {ObjectId} session_id ID for the session for the bill, retrieved from
+ * the client.
+ * @return {Number} returns the total for the bill.
+ */
+module.exports.calculateTotal = function(session_id) {
+	return new Promise(function(resolve) {
+		Bills.findOne({
+			bill_id: session_id
+		}, function (err, doc) {
+			doc.bill_total = 0;
+			doc.bill_items.forEach(function (iter) {
+				doc.bill_total += iter.i_price*iter.i_quantity;
+			});
+			doc.save(function (err) {
+				if (err) return handleError(err);
+				resolve(doc.bill_total);
+			});
+		});
+	});
+}
+
+/**
+ * This function will calculate the total for all claimed items in the session.
+ * This value is then saved in the session in the DB.
+ * @param {ObjectId} session_id The ID for the session for bill.
+ * @return {number} The total for all claimed items.
+ */
+module.exports.calculateClaimedTotal = function(session_id) {
+	return new Promise(function(resolve) {
+		Bills.findOne({
+			bill_id: session_id
+		}, function (err, doc) {
+			doc.bill_unclaimed_total = 0;
+			doc.bill_items.forEach(function (billItem) {
+				Claims.findOne({
+					item_id : billItem.i_id
+				}, function(err, claimedItem) {
+					doc.bill_unclaimed_total += billItem.i_price*claimedItem.quantity;
+				});
+			});
+			doc.save(function (err) {
+				debug("Bill Save Error: ");
+				debug(err);
+				if (err) return handleError(err);
+				resolve(doc.bill_unclaimed_total);
+			});
+			debug("Summed claims prices: " + doc.bill_unclaimed_total);
+		});
+	});
+}
+
+/**
+ * This function calculates the unclaimed total for the session passed. This
+ * value is then saved to the DB for the session.
+ * @param {ObjectId} session_id The ID for the session for which to calculate
+ * the unclaimed total.
+ * @return {Number} The unclaimed total for the session.
+ */
+module.exports.calculateUnclaimedTotal = function(session_id) {
+	var total = calculateUnclaimedTotal(session_id);
+	var claimed = calculateTotal(session_id);
+	var unclaimed = total - claimed;
+	Bills.findOne({
+		bill_id: session_id
+	}, function (err, doc) {
+		doc.bill_total_unclaimed = unclaimed;
+		doc.save(function (err) {
+			debug("Bill save error: ");
+			debug(err);
+			if (err) return handleError(err);
+			resolve(doc.bill_total_unclaimed);
+		});
+		debug("Calculated and stored unclaimed total: " + doc.bill_total_unclaimed);
+	});
+}
+
+/**
+ * This function will obtain all bill data, including all the items in it, all
+ * the users, session_id.
+ * @param {ObjectId} session_id The ID for the session of the bill.
+ * @return {JSON} Contains all the required information.
+ */
+module.exports.fetchBillData = function(session_id) {
+	return new Promise(function (resolve) {
+		Bills.findOne({
+			bill_id: session_id
+		}).populate({
+			path: 'bill_items'
+		}).populate({
+			path: 'users'
+		}).exec(function (err, doc) {
+			debug("session Data:");
+			debug(doc);
+			var response = {
+				data: {
+					type: 'session_data',
+					id: 0,
+					attributes: {
+						bill: doc
+					}
+				}
+			};
+			resolve(response);
+		});
+	});
+}
+
+/**
+ * This function will return all of the items in the session.
+ * @param {ObjectId} session_id The ID for the session.
+ * @return {JSON} Contains the bill_items, bill_total and bill_unclaimed_total.
+ */
+module.exports.fetchBillItems = function(session_id) {
+	return new Promise(function (resolve) {
+		Bills.findOne({
+			bill_id: session_id
+		}).populate({
+			path: 'bill_items'
+		}).exec(function (err, doc) {
+			debug("session items:");
+			debug(doc);
+			var response = {
+				data: {
+					type: 'bill_items',
+					id: 0,
+					attributes: {
+						items: doc.bill_items,
+						bill_total: doc.bill_total,
+						bill_unclaimed_total : doc.bill_unclaimed_total
+					}
+				}
+			};
+			resolve(response);
+		});
+	});
+}
+
+/**
+ * This function will fetch all the users that are in the current session.
+ * @param {ObjectId} session_id The ID for the session to search through.
+ * @return {JSON} Object that contains array of all the users in the current
+ * sesson.
+ */
+module.exports.fetchBillUsers = function(session_id) {
+	return new Promise(function (resolve) {
+		Bills.findOne({
+			bill_id: session_id
+		}).populate({
+			path: 'users'
+		}).exec(function (err, doc) {
+			debug("session users:");
+			debug(doc);
+			var response = {
+				data: {
+					type: 'bill_users',
+					id: 0,
+					attributes: {
+						users: doc.users
+					}
+				}
+			};
+			resolve(response);
+		});
+	});
+}
+
+/**
+ * This function finds the bill owner of the specifed session. It is read from
+ * the DB entry for the session.
+ * @param {ObjectId} session_id The ID of the session.
+ * @return {JSON} Object containing the user ID and user nickname of the owner.
+ */
+module.exports.fetchBillOwner = function(session_id) {
+	return new Promise(function (resolve) {
+		Bills.findOne({
+			bill_id: session_id
+		}).populate({
+			path: 'users'
+		}).exec(function (err, doc) {
+				var response = {
+					data: {
+						type: 'bill_users',
+						id: 0,
+						attributes: {
+							owner_id: doc.users[0].u_id,
+							owner: doc.users[0].u_nickname
+						}
+					}
+				};
+				resolve(response);
+		});
+	});
+}
+
+/**
+ * This function finds the items that have been claimed by a specific user.
+ * @param {ObjectId} userId The ID for the user to find the items claimed for.
+ * @return {JSON} returns the item_claimed from the doc for the session.
+ */
+module.exports.fetchUserClaims = function(userId) {
+	return new Promise(function (resolve) {
+		Users.findOne({
+			u_id: userId
+		}).populate({
+			path: 'item_claimed'
+		}).exec(function (err, doc) {
+			debug("claims by user:");
+			debug(doc);
+			var response = {
+				data: {
+					type: 'bill_users',
+					id: 0,
+					attributes: {
+						u_id: userId,
+						claims: doc.item_claimed
+					}
+				}
+			};
+			resolve(response);
+		});
+	});
+}
+
+/**
+ * This function will fetch the original image captured at session creation from
+ * the database.
+ * @param {ObjectId} session_id The ID for the session for which the original
+ * image is being requested.
+ * @return {String} file path and name for the image in the DB.
+ */
+module.exports.getOriginalImage = function(session_id) {
+	return new promise(function(resolve) {
+		Bills.findOne({
+			bill_id: session_id
+		}).populate({
+			path: "bill_image"
+		}).exec(function (err, doc) {
+			var image = doc.bill_image;
+			resolve(image);
+		});
+	});
+}
+
+/* module.exports.terminateSession = function (req, res, next) {
+  debug("Terminate Session called");
+
+  var session = req.body.session_id;
+  var query = Bills.find({
+    bill_id: session
+  });
+
+  query.remove({
+    users: {
+      $size: 0
+    }
+  }, function (err) {
+    if (err) return handleError(err);
+  });
+  debug('Sending response (status: 200)');
+  res.status(200).send("Success");
+} */
+
+/**
+ * The function called to validate the session data that is stored in the DB.
+ * @param {ObjectId} session The ID for the session that is being validated.
+ * @param {ObjectId} user The ID for the user to be validated in the session.
+ * @return {JSON} Response is a JSON object with a 'valid' attribute that will
+ * be true or flase.
+ */
+module.exports.validateSessionData = function (session, user) {
+	return new Promise(function (resolve) {
+		debug("Validating: "+session);
+		var validated = false;
+		Bills.findOne({
+			bill_id: session
+		}).populate({
+			path: 'users'
+		}).exec(function (err, doc) {
+			if(err) {
+				validated = false;
+			}
+			debug(doc);
+			doc.users.forEach(function(iter){
+				if(iter.u_id == user){
+					validated = true;
+					var responseT = {
+						data: {
+							type: 'validation',
+							id: 0,
+							attributes: {
+								valid: validated
+							}
+						}
+					};
+					resolve(responseT);
+				}
+			});
+			debug("session owner:");
+			debug(doc);
+			var responseF = {
+				data: {
+					type: 'validation',
+					id: 0,
+					attributes: {
+						valid: validated
+					}
+				}
+			};
+			resolve(responseF);
+		});
+	});
+	return true;
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#addItemToDB">addItemToDB</a></li><li><a href="global.html#addUserToDB">addUserToDB</a></li><li><a href="global.html#calculateClaimedTotal">calculateClaimedTotal</a></li><li><a href="global.html#calculateTotal">calculateTotal</a></li><li><a href="global.html#calculateUnclaimedTotal">calculateUnclaimedTotal</a></li><li><a href="global.html#claimItem">claimItem</a></li><li><a href="global.html#createItem">createItem</a></li><li><a href="global.html#createSession">createSession</a></li><li><a href="global.html#deleteItem">deleteItem</a></li><li><a href="global.html#editItem">editItem</a></li><li><a href="global.html#fetchBillData">fetchBillData</a></li><li><a href="global.html#fetchBillItems">fetchBillItems</a></li><li><a href="global.html#fetchBillOwner">fetchBillOwner</a></li><li><a href="global.html#fetchBillUsers">fetchBillUsers</a></li><li><a href="global.html#fetchUserClaims">fetchUserClaims</a></li><li><a href="global.html#generateBillID">generateBillID</a></li><li><a href="global.html#getAllSessionData">getAllSessionData</a></li><li><a href="global.html#getItemId">getItemId</a></li><li><a href="global.html#getItems">getItems</a></li><li><a href="global.html#getOriginalImage">getOriginalImage</a></li><li><a href="global.html#getOwner">getOwner</a></li><li><a href="global.html#getUserId">getUserId</a></li><li><a href="global.html#getUsers">getUsers</a></li><li><a href="global.html#isDorment">isDorment</a></li><li><a href="global.html#isSessionEmpty">isSessionEmpty</a></li><li><a href="global.html#joinSession">joinSession</a></li><li><a href="global.html#leaveSession">leaveSession</a></li><li><a href="global.html#listenerHandler">listenerHandler</a></li><li><a href="global.html#PlatypusApi">PlatypusApi</a></li><li><a href="global.html#populateItems">populateItems</a></li><li><a href="global.html#removeUserFromDB">removeUserFromDB</a></li><li><a href="global.html#sendImage">sendImage</a></li><li><a href="global.html#sendItem">sendItem</a></li><li><a href="global.html#sendRemoveItem">sendRemoveItem</a></li><li><a href="global.html#sendTotal">sendTotal</a></li><li><a href="global.html#sendUnclaimedTotal">sendUnclaimedTotal</a></li><li><a href="global.html#test">test</a></li><li><a href="global.html#unclaimItem">unclaimItem</a></li><li><a href="global.html#validateSessionData">validateSessionData</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Oct 18 2017 23:44:03 GMT+0200 (South Africa Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
