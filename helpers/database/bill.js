@@ -107,7 +107,7 @@ module.exports.addUserToDB = function(session_id, nname, ucolor) {
  * Helper function that will remove a user from the database for the given session.
  * @param {JSON} user_id user_id data retrieved from the client.
  * @param {JSON} session_id session_id data retrieved from the client.
- * @return A boolean value confirming the removal of the user from the DB.
+ * @return {boolean} A boolean value confirming the removal of the user from the DB.
  */
 module.exports.removeUserFromDB = function(user_id, session_id) {
 	debug("removing user " + user_id + " from session " + session_id);
@@ -133,6 +133,12 @@ module.exports.removeUserFromDB = function(user_id, session_id) {
 	});
 }
 
+/**
+ * Helper fucntion that checks if the session passed by the client is empty,
+ * there are no users in the session.
+ * @param {JSON} session_id The session ID that is passed from the client.
+ * @return {Boolean} True if the session is empty, false otherwise.
+ */
 module.exports.isSessionEmpty = function (session_id) {
 	return new promise(function (resolve) {
 		Bills.findOne({
